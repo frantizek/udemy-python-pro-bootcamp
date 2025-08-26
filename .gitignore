@@ -284,3 +284,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# Custom 
+.idea/misc.xml
+.idea/vcs.xml
