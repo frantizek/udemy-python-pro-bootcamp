@@ -6,6 +6,7 @@ Project: Rock Paper Scissors
 """
 import random
 
+
 def main():
     print("Welcome to Rock Paper Scissors!")
 
