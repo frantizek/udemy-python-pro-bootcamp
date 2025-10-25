@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Day 1: Band Name Generator
 100 Days of Code - Python Pro Bootcamp
@@ -29,7 +28,8 @@ This exercise focuses on:
 # TODO: Import any necessary modules (if needed for future enhancements)
 # Currently no imports needed for basic functionality
 
-def display_welcome_message():
+
+def display_welcome_message() -> None:
     """
     Display a welcome message to the user.
 
@@ -43,7 +43,7 @@ def display_welcome_message():
     print()  # Empty line for better readability
 
 
-def get_user_city():
+def get_user_city() -> str:
     """
     Prompt the user for the city they grew up in.
 
@@ -57,7 +57,7 @@ def get_user_city():
     return city
 
 
-def get_pet_name():
+def get_pet_name() -> str:
     """
     Prompt the user for their pet's name.
 
@@ -71,7 +71,7 @@ def get_pet_name():
     return pet_name
 
 
-def generate_band_name(city, pet_name):
+def generate_band_name(city: str, pet_name: str) -> str:
     """
     Generate a band name by combining city and pet name.
 
@@ -88,7 +88,7 @@ def generate_band_name(city, pet_name):
     return band_name
 
 
-def display_band_name(band_name):
+def display_band_name(band_name: str) -> None:
     """
     Display the generated band name to the user.
 
@@ -100,7 +100,7 @@ def display_band_name(band_name):
     print("🎶" * 25)
 
 
-def main():
+def main() -> None:
     """
     Main function that orchestrates the band name generation process.
 

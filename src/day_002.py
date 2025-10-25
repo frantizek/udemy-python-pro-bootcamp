@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Day 2: Tip Calculator
 100 Days of Code - Python Pro Bootcamp
@@ -26,12 +25,16 @@ This exercise focuses on:
 - Formatted output
 """
 
-from typing import Optional
-from decimal import Decimal, InvalidOperation
 import logging
+from decimal import Decimal, InvalidOperation
+
+# --- CONSTANTS ---
+LARGE_PARTY = 20
+HUGE_PARTY = 50
+EXCESSIVE_TIP_AMOUNT = 30
 
 
-def display_welcome_message():
+def display_welcome_message() -> None:
     """
     Display a welcome message to the user.
 
@@ -49,8 +52,8 @@ def get_total_bill(
     min_amount: float = 0.01,
     max_amount: float = 100_000.0,
     allow_cancel: bool = True,
-    logger: Optional[logging.Logger] = None
-) -> Optional[Decimal]:
+    logger: logging.Logger | None = None,
+) -> Decimal | None:
     """
     Robustly collect and validate bill amount.
 
@@ -59,7 +62,7 @@ def get_total_bill(
     while True:
         user_input = input("What was the total bill? $ ").strip()
 
-        if allow_cancel and user_input.lower() in ('q', 'quit', 'exit'):
+        if allow_cancel and user_input.lower() in ("q", "quit", "exit"):
             if logger:
                 logger.info("User cancelled bill input")
             return None
@@ -73,7 +76,7 @@ def get_total_bill(
             elif amount > Decimal(str(max_amount)):
                 print(f"⚠️  Maximum: ${max_amount:,.2f}")
             else:
-                return amount.quantize(Decimal('0.01'))  # Round to cents
+                return amount.quantize(Decimal("0.01"))  # Round to cents
 
         except (ValueError, InvalidOperation):
             print("❌ Invalid input. Enter a number like 42.50")
@@ -81,32 +84,44 @@ def get_total_bill(
                 logger.warning(f"Invalid bill input: {user_input}")
 
 
+def _validate_tip_in_range(tip_percentage: int, min_percentage: int, max_percentage: int) -> tuple[bool, str | None]:
+    """
+    Validate if tip percentage is in valid range.
+
+    Returns:
+        Tuple of (is_valid, error_message)
+    """
+    if tip_percentage < min_percentage:
+        return False, f"⚠️  Minimum tip: {min_percentage}%"
+    elif tip_percentage > max_percentage:
+        return False, f"⚠️  Maximum tip: {max_percentage}%"
+    return True, None
+
+
+def _confirm_unusual_tip(tip_percentage: int) -> bool:
+    """
+    Ask for confirmation on unusual tip percentages.
+
+    Returns:
+        True if user confirms, False otherwise
+    """
+    if tip_percentage > EXCESSIVE_TIP_AMOUNT:
+        confirm = input(f"💵 {tip_percentage}% is generous! Confirm? (y/n) ")
+        return confirm.lower() == "y"
+    elif tip_percentage == 0:
+        confirm = input("🤔 No tip? Are you sure? (y/n) ")
+        return confirm.lower() == "y"
+    return True
+
+
 def get_tip_percentage(
     min_percentage: int = 0,
     max_percentage: int = 100,
     suggested_values: tuple[int, ...] = (10, 12, 15),
     allow_cancel: bool = True,
-    logger: Optional[logging.Logger] = None
-) -> Optional[int]:
-    """
-    Get tip percentage with validation and suggestions.
-
-    Accepts any percentage within range but suggests common values.
-
-    Args:
-        min_percentage: Minimum acceptable tip percentage (default: 0)
-        max_percentage: Maximum acceptable tip percentage (default: 100)
-        suggested_values: Common tip percentages to display
-        allow_cancel: Allow user to cancel input
-        logger: Optional logger for tracking
-
-    Returns:
-        Validated tip percentage or None if cancelled
-
-    Examples:
-        get_tip_percentage()  # Interactive
-        get_tip_percentage(min_percentage=10, max_percentage=25)
-    """
+    logger: logging.Logger | None = None,
+) -> int | None:
+    """Get tip percentage with validation and suggestions."""
     suggestions = ", ".join(map(str, suggested_values))
     prompt = f"What percentage tip would you like to give? ({suggestions}%) "
 
@@ -114,36 +129,29 @@ def get_tip_percentage(
         user_input = input(prompt).strip()
 
         # Handle cancellation
-        if allow_cancel and user_input.lower() in ('q', 'quit', 'exit'):
+        if allow_cancel and user_input.lower() in ("q", "quit", "exit"):
             if logger:
                 logger.info("User cancelled tip input")
             return None
 
         try:
-            # Parse as float to accept decimals, then convert to int
             tip_value = float(user_input)
-            tip_percentage = int(tip_value)  # Convert to int
+            tip_percentage = int(tip_value)
 
-            # Validate range
-            if tip_percentage < min_percentage:
-                print(f"⚠️  Minimum tip: {min_percentage}%")
-            elif tip_percentage > max_percentage:
-                print(f"⚠️  Maximum tip: {max_percentage}%")
-            else:
-                # Sanity check for unusual values
-                if tip_percentage > 30:
-                    confirm = input(f"💵 {tip_percentage}% is generous! Confirm? (y/n) ")
-                    if confirm.lower() != 'y':
-                        continue
-                elif tip_percentage == 0:
-                    confirm = input("🤔 No tip? Are you sure? (y/n) ")
-                    if confirm.lower() != 'y':
-                        continue
+            # Validate range (extracted)
+            is_valid, error_msg = _validate_tip_in_range(tip_percentage, min_percentage, max_percentage)
+            if not is_valid:
+                print(error_msg)
+                continue
 
-                if logger:
-                    logger.info(f"Tip percentage selected: {tip_percentage}%")
+            # Confirm unusual values (extracted)
+            if not _confirm_unusual_tip(tip_percentage):
+                continue
 
-                return tip_percentage
+            if logger:
+                logger.info(f"Tip percentage selected: {tip_percentage}%")
+
+            return tip_percentage
 
         except ValueError:
             print(f"❌ Invalid input. Enter a number like {suggestions}")
@@ -151,29 +159,49 @@ def get_tip_percentage(
                 logger.warning(f"Invalid tip input attempted: {user_input}")
 
 
-def get_number_of_people(
-    min_people: int = 1,
-    max_people: int = 100,
-    allow_cancel: bool = True,
-    logger: Optional[logging.Logger] = None
-) -> Optional[int]:
+def _validate_people_count(num_people: int, min_people: int, max_people: int) -> tuple[bool, str | None]:
     """
-    Robustly get number of people splitting the bill.
-
-    Handles edge cases like solo diners and large groups.
-
-    Args:
-        min_people: Minimum people (default: 1)
-        max_people: Maximum people (default: 100)
-        allow_cancel: Enable cancellation (default: True)
-        logger: Optional logger instance
+    Validate if number of people is in valid range.
 
     Returns:
-        Number of people or None if cancelled
-
-    Raises:
-        ValueError: If min_people < 1 or min_people > max_people
+        Tuple of (is_valid, error_message)
     """
+    if num_people < min_people:
+        if min_people == 1:
+            return False, f"⚠️  Need at least {min_people} person!"
+        else:
+            return False, f"⚠️  Need at least {min_people} people!"
+    elif num_people > max_people:
+        return False, f"⚠️  Maximum supported: {max_people} people"
+    return True, None
+
+
+def _confirm_unusual_group_size(num_people: int) -> bool:
+    """
+    Ask for confirmation on unusual group sizes.
+
+    Returns:
+        True if user confirms, False otherwise
+    """
+    if num_people == 1:
+        print("💡 Just you? The full bill is yours then!")
+        confirm = input("Continue without splitting? (y/n) ")
+        return confirm.lower() == "y"
+    elif num_people > HUGE_PARTY:
+        print(f"🎉 That's a huge group of {num_people}!")
+        confirm = input("Double-check - is this right? (y/n) ")
+        return confirm.lower() == "y"
+    elif num_people > LARGE_PARTY:
+        print(f"👥 Large party of {num_people}!")
+        confirm = input("Is this correct? (y/n) ")
+        return confirm.lower() == "y"
+    return True
+
+
+def get_number_of_people(
+    min_people: int = 1, max_people: int = 100, allow_cancel: bool = True, logger: logging.Logger | None = None
+) -> int | None:
+    """Robustly get number of people splitting the bill."""
     if min_people < 1:
         raise ValueError("min_people must be at least 1")
     if min_people > max_people:
@@ -188,7 +216,7 @@ def get_number_of_people(
             print("💡 Please enter the number of people.")
             continue
 
-        if allow_cancel and user_input.lower() in ('q', 'quit', 'exit'):
+        if allow_cancel and user_input.lower() in ("q", "quit", "exit"):
             if logger:
                 logger.info("User cancelled people count input")
             return None
@@ -202,36 +230,20 @@ def get_number_of_people(
 
             num_people = int(num_people_float)
 
-            # Validate range
-            if num_people < min_people:
-                if min_people == 1:
-                    print(f"⚠️  Need at least {min_people} person!")
-                else:
-                    print(f"⚠️  Need at least {min_people} people!")
-            elif num_people > max_people:
-                print(f"⚠️  Maximum supported: {max_people} people")
-            else:
-                # Context-aware sanity checks
-                if num_people == 1:
-                    print("💡 Just you? The full bill is yours then!")
-                    confirm = input("Continue without splitting? (y/n) ")
-                    if confirm.lower() != 'y':
-                        continue
-                elif num_people > 20:
-                    print(f"👥 Large party of {num_people}!")
-                    confirm = input("Is this correct? (y/n) ")
-                    if confirm.lower() != 'y':
-                        continue
-                elif num_people > 50:
-                    print(f"🎉 That's a huge group of {num_people}!")
-                    confirm = input("Double-check - is this right? (y/n) ")
-                    if confirm.lower() != 'y':
-                        continue
+            # Validate range (extracted)
+            is_valid, error_msg = _validate_people_count(num_people, min_people, max_people)
+            if not is_valid:
+                print(error_msg)
+                continue
 
-                if logger:
-                    logger.info(f"Bill split among {num_people} people")
+            # Confirm unusual values (extracted)
+            if not _confirm_unusual_group_size(num_people):
+                continue
 
-                return num_people
+            if logger:
+                logger.info(f"Bill split among {num_people} people")
+
+            return num_people
 
         except ValueError:
             print("❌ Invalid input. Enter a whole number like 2, 4, or 6.")
@@ -239,7 +251,7 @@ def get_number_of_people(
                 logger.warning(f"Invalid people count: '{user_input}'")
 
 
-def calculate_tip_amount(total_bill, tip_percentage):
+def calculate_tip_amount(total_bill: Decimal, tip_percentage: int) -> float:
     """
     Calculate the tip amount based on bill total and percentage.
 
@@ -254,7 +266,7 @@ def calculate_tip_amount(total_bill, tip_percentage):
     return tip_amount
 
 
-def calculate_total_with_tip(total_bill, tip_amount):
+def calculate_total_with_tip(total_bill: float, tip_amount: float) -> float:
     """
     Calculate the total bill including tip.
 
@@ -265,11 +277,10 @@ def calculate_total_with_tip(total_bill, tip_amount):
     Returns:
         float: The total amount including tip
     """
-    total_with_tip = total_bill + tip_amount
-    return total_with_tip
+    return total_bill + tip_amount
 
 
-def calculate_split_amount(total_with_tip, num_people):
+def calculate_split_amount(total_with_tip: float, num_people: int) -> float:
     """
     Calculate how much each person should pay.
 
@@ -280,8 +291,7 @@ def calculate_split_amount(total_with_tip, num_people):
     Returns:
         float: The amount each person should pay
     """
-    split_amount = total_with_tip / num_people
-    return round(split_amount, 2)
+    return round(total_with_tip / num_people, 2)
 
 
 def format_currency(amount: float) -> str:
@@ -298,7 +308,7 @@ def format_currency(amount: float) -> str:
     return formatted_amount
 
 
-def display_results(split_amount, total_bill, tip_percentage, num_people):
+def display_results(split_amount: float, total_bill: Decimal, tip_percentage: int, num_people: int) -> None:
     """
     Display the calculation results to the user.
 
@@ -317,7 +327,7 @@ def display_results(split_amount, total_bill, tip_percentage, num_people):
     print("🧾" * 25)
 
 
-def main():
+def main() -> None:
     """
     Main function that orchestrates the tip calculation process.
 

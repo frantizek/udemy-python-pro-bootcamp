@@ -30,13 +30,13 @@ since we don't have the actual Karel environment.
 
 # --- Karel World Constants ---
 GRID_SIZE = 10  # 10x10 grid world
-WALL = '▓'
-EMPTY = '·'
-KAREL_NORTH = '↑'
-KAREL_EAST = '→'
-KAREL_SOUTH = '↓'
-KAREL_WEST = '←'
-BEEPER = '○'
+WALL = "▓"
+EMPTY = "·"
+KAREL_NORTH = "↑"
+KAREL_EAST = "→"
+KAREL_SOUTH = "↓"
+KAREL_WEST = "←"
+BEEPER = "○"
 
 
 # --- Karel State ---
@@ -357,13 +357,13 @@ def main():
     print("=" * 50)
 
     challenges = {
-        '1': ("Draw a Square", draw_square),
-        '2': ("Navigate a Maze", navigate_maze),
-        '3': ("Climb a Mountain", climb_mountain),
-        '4': ("Harvest Beepers", solve_harvest_problem),
-        '5': ("Custom Pattern", lambda: create_custom_function("spiral")),
-        '6': ("Function Demonstration", demonstrate_functions),
-        'q': ("Quit", None)
+        "1": ("Draw a Square", draw_square),
+        "2": ("Navigate a Maze", navigate_maze),
+        "3": ("Climb a Mountain", climb_mountain),
+        "4": ("Harvest Beepers", solve_harvest_problem),
+        "5": ("Custom Pattern", lambda: create_custom_function("spiral")),
+        "6": ("Function Demonstration", demonstrate_functions),
+        "q": ("Quit", None),
     }
 
     while True:
@@ -374,7 +374,7 @@ def main():
 
         choice = input("\nSelect a challenge (1-6) or 'q' to quit: ").strip().lower()
 
-        if choice == 'q':
+        if choice == "q":
             print("Thanks for programming with Karel! 👋")
             break
 

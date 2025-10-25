@@ -2,26 +2,25 @@
 Day 5
 - Create a Password Generator
 """
-import string
-import random
-from typing import Optional
+
 import logging
+import secrets
+import string
 
 # --- Character Set Definitions ---
-NUMBERS = string.digits                    # "0123456789"
-UPPERCASE_LETTERS = string.ascii_uppercase # "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-LOWERCASE_LETTERS = string.ascii_lowercase # "abcdefghijklmnopqrstuvwxyz"
-SYMBOLS = "!#$%^&+=*()"                   # Required special characters
+NUMBERS = string.digits  # "0123456789"
+UPPERCASE_LETTERS = string.ascii_uppercase  # "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+LOWERCASE_LETTERS = string.ascii_lowercase  # "abcdefghijklmnopqrstuvwxyz"
+SYMBOLS = "!#$%^&+=*()"  # Required special characters
+# --- CONSTANTS ---
+MINIMUM_LENGTH_PASSWORD = 8
 
 
-def generate_password(
-    num_lowercase: int,
-    num_uppercase: int,
-    num_symbols: int,
-    num_numbers: int
-) -> str:
+def generate_password(num_lowercase: int, num_uppercase: int, num_symbols: int, num_numbers: int) -> str:
     """
-    Generate a secure random password.
+    Generate a cryptographically secure random password.
+
+    Uses secrets module for cryptographic randomness instead of random module.
 
     Args:
         num_lowercase: Number of lowercase letters
@@ -30,35 +29,35 @@ def generate_password(
         num_numbers: Number of digits
 
     Returns:
-        Randomly generated password string
+        Randomly generated secure password string
     """
-    # Build password components
-    password_chars = []
+    # Build password components using secrets
+    password_chars: list[str] = []
 
     # Add required lowercase letters
-    password_chars.extend(random.choices(LOWERCASE_LETTERS, k=num_lowercase))
+    password_chars.extend(secrets.choice(LOWERCASE_LETTERS) for _ in range(num_lowercase))
 
     # Add required uppercase letters
-    password_chars.extend(random.choices(UPPERCASE_LETTERS, k=num_uppercase))
+    password_chars.extend(secrets.choice(UPPERCASE_LETTERS) for _ in range(num_uppercase))
 
     # Add required symbols
-    password_chars.extend(random.choices(SYMBOLS, k=num_symbols))
+    password_chars.extend(secrets.choice(SYMBOLS) for _ in range(num_symbols))
 
     # Add required numbers
-    password_chars.extend(random.choices(NUMBERS, k=num_numbers))
+    password_chars.extend(secrets.choice(NUMBERS) for _ in range(num_numbers))
 
-    # Shuffle to randomize order
-    random.shuffle(password_chars)
+    # Shuffle using secrets (more secure than random.shuffle)
+    password_list = list(password_chars)
+    for i in range(len(password_list) - 1, 0, -1):
+        j = secrets.randbelow(i + 1)
+        password_list[i], password_list[j] = password_list[j], password_list[i]
 
     # Convert list to string
-    return ''.join(password_chars)
+    return "".join(password_list)
 
 
 def validate_password_requirements(
-    num_lowercase: int,
-    num_uppercase: int,
-    num_symbols: int,
-    num_numbers: int
+    num_lowercase: int, num_uppercase: int, num_symbols: int, num_numbers: int
 ) -> tuple[bool, list[str], list[str]]:
     """
     Validate password requirements and provide feedback.
@@ -71,8 +70,8 @@ def validate_password_requirements(
     total_length = num_lowercase + num_uppercase + num_symbols + num_numbers
 
     # Check total length
-    if total_length < 8:
-        missing = 8 - total_length
+    if total_length < MINIMUM_LENGTH_PASSWORD:
+        missing = MINIMUM_LENGTH_PASSWORD - total_length
         errors.append(f"❌ Total: {total_length} characters (need at least 8)")
         suggestions.append(f"   💡 Add {missing} more character{'s' if missing > 1 else ''}")
 
@@ -99,7 +98,7 @@ def validate_password_requirements(
     return len(errors) == 0, errors, suggestions
 
 
-def display_password_requirements():
+def display_password_requirements() -> None:
     """Display password security requirements."""
     print("\n📋 Password Security Requirements:")
     print("=" * 50)
@@ -112,10 +111,10 @@ def display_password_requirements():
     print()
 
 
-def display_current_status(num_lowercase: int, num_uppercase: int, num_symbols: int, num_numbers: int):
+def display_current_status(num_lowercase: int, num_uppercase: int, num_symbols: int, num_numbers: int) -> None:
     """Show current component counts."""
     total = num_lowercase + num_uppercase + num_symbols + num_numbers
-    print(f"\n📊 Current Configuration:")
+    print("\n📊 Current Configuration:")
     print(f"   Lowercase Letters: {num_lowercase}")
     print(f"   Uppercase Letters: {num_uppercase}")
     print(f"   Symbols: {num_symbols}")
@@ -128,8 +127,8 @@ def get_password_component_count(
     min_count: int = 0,
     max_count: int = 10,
     allow_cancel: bool = True,
-    logger: Optional[logging.Logger] = None
-) -> Optional[int]:
+    logger: logging.Logger | None = None,
+) -> int | None:
     """Get the count of password components with validation."""
     if min_count > max_count:
         raise ValueError(f"min_count ({min_count}) cannot exceed max_count ({max_count})")
@@ -143,7 +142,7 @@ def get_password_component_count(
             print(f"💡 Please enter a number ({min_count}-{max_count}).")
             continue
 
-        if allow_cancel and user_input.lower() in ('q', 'quit', 'exit'):
+        if allow_cancel and user_input.lower() in ("q", "quit", "exit"):
             if logger:
                 logger.info(f"User cancelled {component_name} input")
             return None
@@ -166,42 +165,89 @@ def get_password_component_count(
                 logger.warning(f"Invalid {component_name} input: {user_input}")
 
 
-def main():
+def _get_all_password_components(logger: logging.Logger | None = None) -> tuple[int, int, int, int] | None:
+    """
+    Get all password component counts from user.
+
+    Returns:
+        Tuple of (num_lowercase, num_uppercase, num_symbols, num_numbers) or None if cancelled
+    """
+    num_lowercase = get_password_component_count("lowercase letters", logger=logger)
+    if num_lowercase is None:
+        return None
+
+    num_uppercase = get_password_component_count("uppercase letters", logger=logger)
+    if num_uppercase is None:
+        return None
+
+    num_symbols = get_password_component_count("symbols", logger=logger)
+    if num_symbols is None:
+        return None
+
+    num_numbers = get_password_component_count("numbers", logger=logger)
+    if num_numbers is None:
+        return None
+
+    return num_lowercase, num_uppercase, num_symbols, num_numbers
+
+
+def _display_validation_errors(errors: list[str], suggestions: list[str]) -> None:
+    """Display validation errors and suggestions to user."""
+    print("\n" + "=" * 50)
+    print("⚠️  Requirements Not Met")
+    print("=" * 50)
+    for error in errors:
+        print(f"   {error}")
+
+    if suggestions:
+        print("\n💡 Suggestions:")
+        for suggestion in suggestions:
+            print(suggestion)
+
+
+def _display_success_message(num_lowercase: int, num_uppercase: int, num_symbols: int, num_numbers: int) -> None:
+    """Display success message when requirements are met."""
+    total = num_lowercase + num_uppercase + num_symbols + num_numbers
+
+    print("\n" + "=" * 50)
+    print("✅ All Security Requirements Met!")
+    print("=" * 50)
+    print(f"   Total Password Length: {total}")
+    print(f"   • {num_lowercase} lowercase letter{'s' if num_lowercase != 1 else ''}")
+    print(f"   • {num_uppercase} uppercase letter{'s' if num_uppercase != 1 else ''}")
+    print(f"   • {num_symbols} special character{'s' if num_symbols != 1 else ''}")
+    print(f"   • {num_numbers} number{'s' if num_numbers != 1 else ''}")
+    print()
+
+
+def _display_generated_password(password: str) -> None:
+    """Display the generated password."""
+    print("=" * 50)
+    print("🔑 YOUR SECURE PASSWORD")
+    print("=" * 50)
+    print(f"\n   {password}\n")
+    print("=" * 50)
+
+
+def main() -> None:
     """Main password generator function."""
     print("🔐 Secure Password Generator")
     print("=" * 50)
 
-    # Display requirements
     display_password_requirements()
 
     max_attempts = 3
-    attempt = 0
 
-    while attempt < max_attempts:
-        attempt += 1
-
-        # Get inputs
-        num_lowercase = get_password_component_count("lowercase letters")
-        if num_lowercase is None:
+    for attempt in range(1, max_attempts + 1):
+        # Get all components
+        components = _get_all_password_components()
+        if components is None:
             print("\n👋 Password generation cancelled!")
             return
 
-        num_uppercase = get_password_component_count("uppercase letters")
-        if num_uppercase is None:
-            print("\n👋 Password generation cancelled!")
-            return
+        num_lowercase, num_uppercase, num_symbols, num_numbers = components
 
-        num_symbols = get_password_component_count("symbols")
-        if num_symbols is None:
-            print("\n👋 Password generation cancelled!")
-            return
-
-        num_numbers = get_password_component_count("numbers")
-        if num_numbers is None:
-            print("\n👋 Password generation cancelled!")
-            return
-
-        # Show what user selected
+        # Show current configuration
         display_current_status(num_lowercase, num_uppercase, num_symbols, num_numbers)
 
         # Validate requirements
@@ -210,53 +256,21 @@ def main():
         )
 
         if is_valid:
-            # Success!
-            print("\n" + "=" * 50)
-            print("✅ All Security Requirements Met!")
-            print("=" * 50)
-            print(f"   Total Password Length: {num_lowercase + num_uppercase + num_symbols + num_numbers}")
-            print(f"   • {num_lowercase} lowercase letter{'s' if num_lowercase != 1 else ''}")
-            print(f"   • {num_uppercase} uppercase letter{'s' if num_uppercase != 1 else ''}")
-            print(f"   • {num_symbols} special character{'s' if num_symbols != 1 else ''}")
-            print(f"   • {num_numbers} number{'s' if num_numbers != 1 else ''}")
-            print()
+            # Success - generate and display password
+            _display_success_message(num_lowercase, num_uppercase, num_symbols, num_numbers)
 
             password = generate_password(num_lowercase, num_uppercase, num_symbols, num_numbers)
-
-            print("\n" + "=" * 50)
-            print("🔑 YOUR SECURE PASSWORD")
-            print("=" * 50)
-            print()
-            print("   ┌" + "─" * (len(password) + 2) + "┐")
-            print(f"   │ {password} │")
-            print("   └" + "─" * (len(password) + 2) + "┘")
-            print()
-            print("=" * 50)
-            print("⚠️  IMPORTANT:")
-            print("   • Store this password securely")
-            print("   • Don't share it with anyone")
-            print("   • Use a password manager")
-            print("=" * 50)
+            _display_generated_password(password)
             return
 
+        # Validation failed - show errors
+        _display_validation_errors(errors, suggestions)
+
+        if attempt < max_attempts:
+            print(f"\n🔄 Let's try again... (Attempt {attempt + 1}/{max_attempts})\n")
         else:
-            # Show errors and suggestions
-            print("\n" + "=" * 50)
-            print("⚠️  Requirements Not Met")
-            print("=" * 50)
-            for error in errors:
-                print(f"   {error}")
-
-            if suggestions:
-                print("\n💡 Suggestions:")
-                for suggestion in suggestions:
-                    print(suggestion)
-
-            if attempt < max_attempts:
-                print(f"\n🔄 Let's try again... (Attempt {attempt + 1}/{max_attempts})\n")
-            else:
-                print("\n❌ Maximum attempts reached.")
-                print("💡 Restart the program to try again.")
+            print("\n❌ Maximum attempts reached.")
+            print("💡 Restart the program to try again.")
 
 
 if __name__ == "__main__":

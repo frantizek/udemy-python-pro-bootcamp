@@ -7,6 +7,7 @@ Treasure Island 🏝️
 Adventurer’s Edition - Enhanced Story!
 """
 
+
 def main():
     # Treasure Island 🏝️ Adventure Game
     print(
