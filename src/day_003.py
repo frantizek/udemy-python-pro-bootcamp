@@ -8,7 +8,7 @@ Adventurer’s Edition - Enhanced Story!
 """
 
 
-def main():
+def main() -> None:
     # Treasure Island 🏝️ Adventure Game
     print(
         "🏴‍☠️ Welcome to Treasure Island! 🏝️\n"

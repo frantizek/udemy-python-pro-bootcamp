@@ -8,7 +8,7 @@ Project: Rock Paper Scissors
 import random
 
 
-def main():
+def main() -> None:
     print("Welcome to Rock Paper Scissors!")
 
     # Player choice input

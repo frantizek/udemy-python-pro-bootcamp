@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Day 6: Python Functions & Karel the Robot
 100 Days of Code - Python Pro Bootcamp
@@ -27,16 +26,17 @@ since we don't have the actual Karel environment.
 
 # TODO: Import any necessary modules
 # Consider what might help with grid simulation or visualization
+from collections.abc import Callable
 
 # --- Karel World Constants ---
-GRID_SIZE = 10  # 10x10 grid world
-WALL = "▓"
-EMPTY = "·"
-KAREL_NORTH = "↑"
-KAREL_EAST = "→"
-KAREL_SOUTH = "↓"
-KAREL_WEST = "←"
-BEEPER = "○"
+GRID_SIZE: int = 10  # 10x10 grid world
+WALL: str = "▓"
+EMPTY: str = "·"
+KAREL_NORTH: str = "↑"
+KAREL_EAST: str = "→"
+KAREL_SOUTH: str = "↓"
+KAREL_WEST: str = "←"
+BEEPER: str = "○"
 
 
 # --- Karel State ---
@@ -45,16 +45,20 @@ class KarelWorld:
     Simulates Karel's world with position, direction, and beepers.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # TODO: Initialize Karel's world state
         # - Position (x, y)
         # - Direction (north, east, south, west)
         # - Beeper locations
         # - Wall locations
         # - Grid representation
-        pass
+        self.karel_position: tuple[int, int] = (0, 0)
+        self.karel_direction: str = KAREL_NORTH
+        self.beepers: set[tuple[int, int]] = set()
+        self.walls: set[tuple[int, int]] = set()
+        self.grid: list[list[str]] = []
 
-    def display_world(self):
+    def display_world(self) -> None:
         """
         Display the current state of Karel's world.
 
@@ -74,10 +78,10 @@ class KarelWorld:
 
 
 # Global world instance
-world = KarelWorld()
+world: KarelWorld = KarelWorld()
 
 
-def move():
+def move() -> bool:
     """
     Move Karel forward one space in the direction it's facing.
 
@@ -96,7 +100,7 @@ def move():
     return False
 
 
-def turn_left():
+def turn_left() -> None:
     """
     Turn Karel 90 degrees to the left.
 
@@ -109,7 +113,7 @@ def turn_left():
     print("Karel turns left")
 
 
-def turn_right():
+def turn_right() -> None:
     """
     Turn Karel 90 degrees to the right.
 
@@ -121,7 +125,7 @@ def turn_right():
     print("Karel turns right")
 
 
-def front_is_clear():
+def front_is_clear() -> bool:
     """
     Check if there's no wall in front of Karel.
 
@@ -133,7 +137,7 @@ def front_is_clear():
     return True
 
 
-def left_is_clear():
+def left_is_clear() -> bool:
     """
     Check if there's no wall to Karel's left.
 
@@ -144,7 +148,7 @@ def left_is_clear():
     return True
 
 
-def right_is_clear():
+def right_is_clear() -> bool:
     """
     Check if there's no wall to Karel's right.
 
@@ -155,7 +159,7 @@ def right_is_clear():
     return True
 
 
-def facing_north():
+def facing_north() -> bool:
     """
     Check if Karel is facing north.
 
@@ -166,7 +170,7 @@ def facing_north():
     return False
 
 
-def facing_east():
+def facing_east() -> bool:
     """
     Check if Karel is facing east.
 
@@ -177,7 +181,7 @@ def facing_east():
     return False
 
 
-def facing_south():
+def facing_south() -> bool:
     """
     Check if Karel is facing south.
 
@@ -188,7 +192,7 @@ def facing_south():
     return False
 
 
-def facing_west():
+def facing_west() -> bool:
     """
     Check if Karel is facing west.
 
@@ -199,7 +203,7 @@ def facing_west():
     return False
 
 
-def put_beeper():
+def put_beeper() -> None:
     """
     Place a beeper at Karel's current location.
 
@@ -209,7 +213,7 @@ def put_beeper():
     print("Karel puts down a beeper")
 
 
-def pick_beeper():
+def pick_beeper() -> bool:
     """
     Pick up a beeper from Karel's current location.
 
@@ -221,7 +225,7 @@ def pick_beeper():
     return True
 
 
-def beepers_present():
+def beepers_present() -> bool:
     """
     Check if there are any beepers at Karel's current location.
 
@@ -233,7 +237,7 @@ def beepers_present():
 
 
 # --- Challenge Functions ---
-def draw_square():
+def draw_square() -> None:
     """
     Challenge 1: Make Karel draw a square pattern.
 
@@ -251,7 +255,7 @@ def draw_square():
     print("Drawing square...")
 
 
-def navigate_maze():
+def navigate_maze() -> None:
     """
     Challenge 2: Navigate Karel through a simple maze.
 
@@ -269,7 +273,7 @@ def navigate_maze():
     print("Navigating maze...")
 
 
-def climb_mountain():
+def climb_mountain() -> None:
     """
     Challenge 3: Make Karel climb a 'mountain' of beepers.
 
@@ -287,7 +291,7 @@ def climb_mountain():
     print("Climbing mountain...")
 
 
-def solve_harvest_problem():
+def solve_harvest_problem() -> None:
     """
     Challenge 4: Harvest a field of beepers.
 
@@ -305,7 +309,7 @@ def solve_harvest_problem():
     print("Harvesting beepers...")
 
 
-def create_custom_function(pattern_name):
+def create_custom_function(pattern_name: str) -> None:
     """
     Challenge 5: Create a custom function for a specific pattern.
 
@@ -322,7 +326,7 @@ def create_custom_function(pattern_name):
     print(f"Creating {pattern_name} pattern...")
 
 
-def demonstrate_functions():
+def demonstrate_functions() -> None:
     """
     Demonstrate all the Karel functions working together.
 
@@ -345,7 +349,7 @@ def demonstrate_functions():
     print("Demonstration completed!")
 
 
-def main():
+def main() -> None:
     """
     Main function to run Karel programming challenges.
 
@@ -356,7 +360,7 @@ def main():
     print("Learn Python Functions through Robot Programming")
     print("=" * 50)
 
-    challenges = {
+    challenges: dict[str, tuple[str, Callable | None]] = {
         "1": ("Draw a Square", draw_square),
         "2": ("Navigate a Maze", navigate_maze),
         "3": ("Climb a Mountain", climb_mountain),
@@ -372,7 +376,7 @@ def main():
         for key, (description, _) in challenges.items():
             print(f"{key}. {description}")
 
-        choice = input("\nSelect a challenge (1-6) or 'q' to quit: ").strip().lower()
+        choice: str = input("\nSelect a challenge (1-6) or 'q' to quit: ").strip().lower()
 
         if choice == "q":
             print("Thanks for programming with Karel! 👋")
